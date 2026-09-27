@@ -40,12 +40,39 @@ class RedisConfig:
 
 
 @dataclass(frozen=True)
+class HeartbeatConfig:
+    """Agent heartbeat configuration for liveness tracking."""
+
+    interval: float = field(
+        default_factory=lambda: float(os.getenv("HEARTBEAT_INTERVAL", "5.0"))
+    )
+    ttl: int = field(default_factory=lambda: int(os.getenv("HEARTBEAT_TTL", "15")))
+    prefix: str = field(
+        default_factory=lambda: os.getenv("HEARTBEAT_PREFIX", "heartbeat")
+    )
+
+
+@dataclass(frozen=True)
+class LeaseConfig:
+    """Distributed task lease configuration."""
+
+    ttl: int = field(default_factory=lambda: int(os.getenv("LEASE_TTL", "30")))
+    prefix: str = field(default_factory=lambda: os.getenv("LEASE_PREFIX", "lease"))
+    renewal_interval: float = field(
+        default_factory=lambda: float(os.getenv("LEASE_RENEWAL_INTERVAL", "10.0"))
+    )
+
+
+@dataclass(frozen=True)
 class Settings:
     """Global system settings."""
 
     rabbitmq: RabbitMQConfig = field(default_factory=RabbitMQConfig)
     redis: RedisConfig = field(default_factory=RedisConfig)
+    heartbeat: HeartbeatConfig = field(default_factory=HeartbeatConfig)
+    lease: LeaseConfig = field(default_factory=LeaseConfig)
 
 
 # Default singleton instance for convenience
 settings = Settings()
+
