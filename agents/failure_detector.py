@@ -91,7 +91,10 @@ class FailureDetector:
 
         if update_registry and self.health_registry:
             self.health_registry.update_status(agent_id, status)
-            logger.info(f"[FAILURE_DETECTOR] agent_id={agent_id} detected_status={status.value}")
+            if status == AgentStatus.FAILED:
+                logger.warning(f"[AGENT_FAILED] agent_id={agent_id} detected_status={status.value}")
+            else:
+                logger.info(f"[FAILURE_DETECTOR] agent_id={agent_id} detected_status={status.value}")
 
         return status
 

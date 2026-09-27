@@ -106,6 +106,8 @@ class TaskStore:
         task_id: str,
         result: Any,
         status: TaskStatus | str = TaskStatus.COMPLETED,
+        completed_at: Optional[str] = None,
+        recovery_duration: Optional[float] = None,
     ) -> Optional[Task]:
         """Record the execution result and transition task status (default: COMPLETED)."""
         task = self.get_task(task_id)
@@ -114,6 +116,10 @@ class TaskStore:
 
         task.result = result
         task.status = TaskStatus(status) if isinstance(status, str) else status
+        if completed_at is not None:
+            task.completed_at = completed_at
+        if recovery_duration is not None:
+            task.recovery_duration = recovery_duration
         task.touch()
         self.save_task(task)
         return task
@@ -138,3 +144,27 @@ class TaskStore:
     def delete_task(self, task_id: str) -> bool:
         """Delete a task from Redis. Returns True if deleted, False otherwise."""
         return bool(self.redis.delete(self._key(task_id)))
+
+    def list_tasks(self) -> list[Task]:
+        """List all tasks stored in Redis under this store's key prefix."""
+        tasks: list[Task] = []
+        for key in self.redis.keys(f"{self.key_prefix}:*"):
+            # Skip lease or subkey namespaces if present
+            if ":lease:" in key:
+                continue
+            data = self.redis.get(key)
+            if data:
+                try:
+                    tasks.append(Task.from_json(data))
+                except Exception:
+                    pass
+        return tasks
+
+    def get_tasks_by_status(self, status: TaskStatus | str) -> list[Task]:
+        """Retrieve all tasks currently in a specific status."""
+        target_status = TaskStatus(status) if isinstance(status, str) else status
+        return [t for t in self.list_tasks() if t.status == target_status]
+
+    def get_processing_tasks(self) -> list[Task]:
+        """Retrieve all tasks currently in PROCESSING status."""
+        return self.get_tasks_by_status(TaskStatus.PROCESSING)

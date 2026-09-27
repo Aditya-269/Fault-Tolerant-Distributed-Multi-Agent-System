@@ -13,7 +13,7 @@ from agents.heartbeat import (
     get_agent_ttl,
     is_agent_alive,
 )
-from agents.worker import Worker
+from agents.worker import SimulatedAgentCrash, Worker
 from state.lease_renewer import LeaseRenewer
 from state.task_lease import TaskLease
 
@@ -23,6 +23,7 @@ __all__ = [
     "FailureDetector",
     "HeartbeatSender",
     "LeaseRenewer",
+    "SimulatedAgentCrash",
     "TaskLease",
     "Worker",
     "execute_task",

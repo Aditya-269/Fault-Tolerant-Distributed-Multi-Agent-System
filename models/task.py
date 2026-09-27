@@ -15,6 +15,7 @@ class TaskStatus(str, Enum):
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    RECOVERABLE = "RECOVERABLE"
 
 
 def _utc_now_iso() -> str:
@@ -35,6 +36,13 @@ class Task:
     error: Optional[str] = None
     created_at: str = field(default_factory=_utc_now_iso)
     updated_at: str = field(default_factory=_utc_now_iso)
+    recovery_attempts: int = 0
+    recovered_at: Optional[str] = None
+    previous_agent_id: Optional[str] = None
+    failure_detected_at: Optional[str] = None
+    recovery_started_at: Optional[str] = None
+    completed_at: Optional[str] = None
+    recovery_duration: Optional[float] = None
 
     def __post_init__(self) -> None:
         """Ensure status is a TaskStatus enum instance."""
@@ -57,6 +65,13 @@ class Task:
             "error": self.error,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            "recovery_attempts": self.recovery_attempts,
+            "recovered_at": self.recovered_at,
+            "previous_agent_id": self.previous_agent_id,
+            "failure_detected_at": self.failure_detected_at,
+            "recovery_started_at": self.recovery_started_at,
+            "completed_at": self.completed_at,
+            "recovery_duration": self.recovery_duration,
         }
 
     @classmethod
@@ -72,6 +87,13 @@ class Task:
             error=data.get("error"),
             created_at=data["created_at"],
             updated_at=data["updated_at"],
+            recovery_attempts=data.get("recovery_attempts", 0),
+            recovered_at=data.get("recovered_at"),
+            previous_agent_id=data.get("previous_agent_id"),
+            failure_detected_at=data.get("failure_detected_at"),
+            recovery_started_at=data.get("recovery_started_at"),
+            completed_at=data.get("completed_at"),
+            recovery_duration=data.get("recovery_duration"),
         )
 
     def to_json(self) -> str:
