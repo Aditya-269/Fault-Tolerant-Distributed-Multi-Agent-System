@@ -106,11 +106,13 @@ class Coordinator:
 
 if __name__ == "__main__":
     # Demonstration CLI usage
+    count = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 1
     with Coordinator() as coord:
-        demo_task = coord.create_task(
-            task_type="calculate",
-            payload={"a": 10, "b": 20},
-        )
-        print(f"Created and dispatched Task ID: {demo_task.task_id}")
-        print(f"Status: {demo_task.status.value}")
-        print(f"Payload: {demo_task.payload}")
+        for i in range(count):
+            demo_task = coord.create_task(
+                task_type="calculate",
+                payload={"a": 10 * (i + 1), "b": 20 * (i + 1)} if count > 1 else {"a": 10, "b": 20},
+            )
+            print(f"Created and dispatched Task ID: {demo_task.task_id}")
+            print(f"Status: {demo_task.status.value}")
+            print(f"Payload: {demo_task.payload}")
